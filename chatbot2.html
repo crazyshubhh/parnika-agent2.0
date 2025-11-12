@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthBot - Chatbot</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(120deg, #89f7fe, #d5f4f9);
+        color: #333;
+      }
+      header {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 2.5em;
+      }
+      main {
+        padding: 20px;
+        max-width: 600px;
+        margin: 20px auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      #chat-output {
+        min-height: 300px;
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        background: #f9f9f9;
+      }
+      .message {
+        display: flex;
+        align-items: flex-start;
+        margin: 10px 0;
+      }
+      .bot-message,
+      .user-message {
+        display: flex;
+        align-items: center;
+      }
+      .bot-message .avatar,
+      .user-message .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      .bot-message .text,
+      .user-message .text {
+        background: #f1f1f1;
+        padding: 10px 15px;
+        border-radius: 10px;
+      }
+      .bot-message .text {
+        background: #d1e7ff;
+      }
+      .user-message .text {
+        background: #bfffd0;
+      }
+      #chat-input {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+      }
+      #chat-input input {
+        flex-grow: 1;
+      }
+      button {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 1em;
+      }
+      button:hover {
+        background: linear-gradient(90deg, #00f2fe, #4facfe);
+      }
+      footer {
+        text-align: center;
+        padding: 10px;
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>HealthBot</h1>
+    </header>
+    <main>
+      <h2>Chatbot Suggestions</h2>
+      <div id="chat-output"></div>
+      <div id="chat-input">
+        <input type="text" id="user-input" placeholder="Ask about your health..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2025 HealthBot. All rights reserved to Shubh and team.</p>
+    </footer>
+
+    <script>
+      const chatOutput = document.getElementById("chat-output");
+      const userInput = document.getElementById("user-input");
+      const sendButton = document.getElementById("send-btn");
+
+      // ⚠️ Put your Gemini API key here
+      const GEMINI_API_KEY = "AIzaSyAoEMF1BhS-jT34dYEPmOpN0xh3re6OlZ8";
+
+      // Retrieve user details from localStorage
+      const userName = localStorage.getItem("userName") || "User";
+
+      // Predefined disease responses
+      const diseaseResponses = {
+        hello: "Hello! How can I help you today?",
+        hi: "Hi! How can I help you today?",
+        fever: "It seems you have a fever. Stay hydrated, rest, and consider taking paracetamol. If it persists, see a doctor.",
+        cold: "For a cold, drink warm fluids, rest, and consider over-the-counter decongestants. Stay warm!",
+        headache: "For headaches, drink plenty of water, rest in a quiet place, and consider taking a pain reliever like ibuprofen.",
+        // ... (your other responses stay the same)
+      };
+
+      // Display a welcome message
+      function displayWelcomeMessage() {
+        addTypingIndicator("bot");
+        setTimeout(() => {
+          removeTypingIndicator();
+          const message = `Hello ${userName}! How are you feeling today? You can ask me about your health issues.`;
+          addMessage("bot", message);
+        }, 1500);
+      }
+
+      // Add typing indicator
+      function addTypingIndicator(sender) {
+        const typingDiv = document.createElement("div");
+        typingDiv.classList.add(sender === "bot" ? "bot-message" : "user-message", "typing");
+        typingDiv.innerHTML = `
+          <img class="avatar" src="https://e7.pngegg.com/pngimages/498/917/png-clipart-computer-icons-desktop-chatbot-icon-blue-angle.png" alt="Bot">
+          <div class="text">Typing...</div>
+        `;
+        chatOutput.appendChild(typingDiv);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      }
+
+      // Remove typing indicator
+      function removeTypingIndicator() {
+        const typingDiv = chatOutput.querySelector(".typing");
+        if (typingDiv) typingDiv.remove();
+      }
+
+      // Add messages to the chat output
+      function addMessage(sender, message) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add(sender === "bot" ? "bot-message" : "user-message", "message");
+        messageDiv.innerHTML = `
+          <img class="avatar" src="${
+            sender === "bot"
+              ? "https://e7.pngegg.com/pngimages/498/917/png-clipart-computer-icons-desktop-chatbot-icon-blue-angle-thumbnail.png"
+              : "https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png"
+          }" alt="${sender}">
+          <div class="text">${message}</div>
+        `;
+        chatOutput.appendChild(messageDiv);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      }
+
+      // Extract keywords from user input
+      function extractKeywords(input) {
+        const keywords = Object.keys(diseaseResponses);
+        for (const keyword of keywords) {
+          if (input.includes(keyword)) {
+            return keyword;
+          }
+        }
+        return null;
+      }
+
+      // Gemini API call
+      async function fetchGeminiResponse(prompt) {
+        try {
+          const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + GEMINI_API_KEY,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+              }),
+            }
+          );
+          const data = await response.json();
+          return data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't fetch a response.";
+        } catch (error) {
+          console.error("Error:", error);
+          return "⚠️ Something went wrong while contacting Gemini API.";
+        }
+      }
+
+      // Handle user input
+      sendButton.addEventListener("click", async () => {
+        const message = userInput.value.trim().toLowerCase();
+        if (!message) return;
+        addMessage("user", message);
+        userInput.value = "";
+        addTypingIndicator("bot");
+
+        setTimeout(async () => {
+          removeTypingIndicator();
+          const keyword = extractKeywords(message);
+          if (keyword) {
+            addMessage("bot", diseaseResponses[keyword]);
+          } else {
+            // 🌟 Fallback: Use Gemini API
+            const geminiReply = await fetchGeminiResponse(message);
+            addMessage("bot", geminiReply);
+          }
+        }, 1500);
+      });
+
+      // Display the welcome message on page load
+      displayWelcomeMessage();
+    </script>
+  </body>
+</html>

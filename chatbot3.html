@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthBot - Chatbot</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(120deg, #89f7fe, #d5f4f9);
+        color: #333;
+      }
+
+      header {
+        position: relative;
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 2.5em;
+      }
+
+      /* 🔙 Back button styling */
+      .back-btn {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        background: white;
+        color: #0078ff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .back-btn:hover {
+        background: #e0f3ff;
+        transform: scale(1.05);
+      }
+
+      main {
+        padding: 20px;
+        max-width: 600px;
+        margin: 20px auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      #chat-output {
+        min-height: 300px;
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        background: #f9f9f9;
+      }
+
+      .message {
+        display: flex;
+        align-items: flex-start;
+        margin: 10px 0;
+      }
+
+      .bot-message,
+      .user-message {
+        display: flex;
+        align-items: center;
+      }
+
+      .bot-message .avatar,
+      .user-message .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .bot-message .text,
+      .user-message .text {
+        background: #f1f1f1;
+        padding: 10px 15px;
+        border-radius: 10px;
+      }
+
+      .bot-message .text {
+        background: #d1e7ff;
+      }
+
+      .user-message .text {
+        background: #bfffd0;
+      }
+
+      #chat-input {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+      }
+
+      #chat-input input {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 1em;
+      }
+
+      button:hover {
+        background: linear-gradient(90deg, #00f2fe, #4facfe);
+      }
+
+      footer {
+        text-align: center;
+        padding: 10px;
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <!-- 🔙 Back button -->
+      <button class="back-btn" onclick="history.back()">← Back</button>
+      <button class="back-btn" onclick="window.location.href='frontpage.html'">← Back</button>
+      <h1>HealthBot</h1>
+    </header>
+
+    <main>
+      <h2>Chatbot Suggestions</h2>
+      <div id="chat-output"></div>
+      <div id="chat-input">
+        <input type="text" id="user-input" placeholder="Ask about your health..." />
+        <button id="send-btn">Send</button>
+      </div>
+    </main>
+
+    <script>
+      const chatOutput = document.getElementById("chat-output");
+      const userInput = document.getElementById("user-input");
+      const sendButton = document.getElementById("send-btn");
+      const userName = localStorage.getItem("userName") || "User";
+
+      const diseaseResponses = {
+        hello: "Hello! How can I help you today?",
+        hi: "Hi! How can I help you today?",
+        hey: "Hey! How can I help you today?",
+        fever: "It seems you might have a fever. Stay hydrated, rest, and consider taking paracetamol. If it persists, see a doctor.",
+        cold: "You might have a common cold. Drink warm fluids, rest, and stay warm.",
+        cough: "You might have a cough. Drink warm fluids, try honey with tea, and avoid cold drinks.",
+        headache: "It seems you have a headache. Drink water, rest, and take a mild pain reliever if needed.",
+        stomachache: "You might have a stomachache. Avoid spicy food and drink ginger tea.",
+        sorethroat: "You might have a sore throat. Gargle with warm salt water and stay hydrated.",
+        diarrhea: "It seems you have diarrhea. Drink ORS and avoid spicy food.",
+        constipation: "It seems you have constipation. Eat fiber-rich food and drink more water.",
+        fatigue: "You seem tired. Rest, eat healthy, and sleep well.",
+        dizziness: "You seem dizzy. Sit down, rest, and drink water.",
+        anxiety: "It seems you are anxious. Take deep breaths and try to relax.",
+        depression: "Feeling low is okay. Talk to someone you trust or seek help.",
+        skinrash: "It seems you have a skin rash. Avoid scratching and apply soothing cream.",
+        toothache: "You might have a toothache. Rinse with salt water and visit a dentist.",
+        backpain: "You seem to have back pain. Maintain good posture and rest.",
+        covid: "If you suspect COVID-19, isolate yourself and get tested immediately.",
+        emergency: "If this is a medical emergency, please call your local emergency number immediately."
+      };
+
+      const healthTips = [
+        "Drink at least 8 glasses of water daily 💧",
+        "Take a 5-minute walk every hour if you sit a lot 🏃‍♂️",
+        "Eat fresh fruits and vegetables daily 🍎🥦",
+        "Sleep 7–8 hours every night 😴",
+        "Wash your hands regularly 🧼",
+        "Avoid skipping breakfast ☀️",
+        "Limit your sugar and salt intake 🍬",
+        "Take deep breaths to manage stress 🌿",
+        "Exercise at least 30 minutes a day 💪",
+        "Keep a positive mindset — it’s great for health 😊"
+      ];
+
+      function extractKeywords(input) {
+        input = input.toLowerCase();
+        const keywordGroups = {
+          fever: ["fever", "temperature", "feverish", "body hot"],
+          cold: ["cold", "running nose", "sneeze"],
+          cough: ["cough", "coughing", "throat irritation"],
+          headache: ["headache", "head hurts", "migraine"],
+          stomachache: ["stomach pain", "tummy ache"],
+          sorethroat: ["sore throat", "throat pain"],
+          diarrhea: ["diarrhea", "loose motion", "stomach upset"],
+          constipation: ["constipation", "no motion", "hard stool"],
+          fatigue: ["tired", "fatigue", "exhausted"],
+          dizziness: ["dizzy", "lightheaded"],
+          anxiety: ["anxiety", "anxious", "nervous"],
+          depression: ["depression", "sad", "feeling low"],
+          toothache: ["toothache", "tooth pain"],
+          backpain: ["back pain", "lower back"],
+          skinrash: ["rash", "itchy skin"],
+          covid: ["covid", "corona", "virus"],
+          emergency: ["emergency", "chest pain", "bleeding"],
+          healthtip: ["tip", "advice", "health tip"]
+        };
+
+        for (const [key, terms] of Object.entries(keywordGroups)) {
+          if (terms.some(term => input.includes(term))) return key;
+        }
+
+        return Object.keys(diseaseResponses).find(k => input.includes(k)) || null;
+      }
+
+      function addTypingIndicator(sender) {
+        const typingDiv = document.createElement("div");
+        typingDiv.classList.add(sender === "bot" ? "bot-message" : "user-message", "typing");
+        typingDiv.innerHTML = `
+          <img class="avatar" src="https://e7.pngegg.com/pngimages/498/917/png-clipart-computer-icons-desktop-chatbot-icon-blue-angle.png" alt="Bot">
+          <div class="text">Typing...</div>
+        `;
+        chatOutput.appendChild(typingDiv);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      }
+
+      function removeTypingIndicator() {
+        const typingDiv = chatOutput.querySelector(".typing");
+        if (typingDiv) typingDiv.remove();
+      }
+
+      function addMessage(sender, message) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add(sender === "bot" ? "bot-message" : "user-message", "message");
+        messageDiv.innerHTML = `
+          <img class="avatar" src="${
+            sender === "bot"
+              ? "https://e7.pngegg.com/pngimages/498/917/png-clipart-computer-icons-desktop-chatbot-icon-blue-angle-thumbnail.png"
+              : "https://images.rawpixel.com/image_png_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA0L3BmLWljb240LWppcjIwNjItcG9yLWwtam9iNzg4LnBuZw.png"
+          }" alt="${sender}">
+          <div class="text">${message}</div>
+        `;
+        chatOutput.appendChild(messageDiv);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+      }
+
+      function displayWelcomeMessage() {
+        addTypingIndicator("bot");
+        setTimeout(() => {
+          removeTypingIndicator();
+          addMessage("bot", `Hello ${userName}! 👋 How are you feeling today? You can ask me about your health or say "give me a tip".`);
+        }, 1200);
+      }
+
+      function handleUserMessage() {
+        const message = userInput.value.trim().toLowerCase();
+        if (!message) return;
+        addMessage("user", message);
+        userInput.value = "";
+        addTypingIndicator("bot");
+
+        setTimeout(() => {
+          removeTypingIndicator();
+          const keyword = extractKeywords(message);
+
+          if (keyword === "healthtip") {
+            const tip = healthTips[Math.floor(Math.random() * healthTips.length)];
+            addMessage("bot", `💡 Health Tip: ${tip}`);
+          } else if (keyword && diseaseResponses[keyword]) {
+            addMessage("bot", diseaseResponses[keyword]);
+          } else {
+            addMessage("bot", "I'm sorry, I couldn't identify your symptoms. Please describe how you're feeling in more detail.");
+          }
+        }, 1300);
+      }
+
+      sendButton.addEventListener("click", handleUserMessage);
+      userInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleUserMessage();
+      });
+
+      displayWelcomeMessage();
+    </script>
+  </body>
+</html>
